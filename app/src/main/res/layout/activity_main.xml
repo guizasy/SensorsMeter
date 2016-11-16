@@ -21,8 +21,15 @@
 
     <Button
         android:id="@+id/BtnSend"
-        android:text="Enviar"
+        android:text="@string/share_btn"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content" />
+        android:layout_height="wrap_content"
+        android:onClick="onClickBtn" />
 
+    <Button
+        android:id="@+id/BtnDelete"
+        android:text="@string/delete_files"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:onClick="onClickBtn" />
 </LinearLayout>
