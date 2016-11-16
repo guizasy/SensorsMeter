@@ -2,4 +2,5 @@
     <string name="app_name">SensorsMeter</string>
     <string name="delete_files">Deletar Arquivos</string>
     <string name="share_btn">Enviar</string>
+    <string name="ativar_coleta">Ativar coleta?</string>
 </resources>

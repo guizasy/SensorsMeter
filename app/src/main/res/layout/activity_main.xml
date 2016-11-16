@@ -14,22 +14,26 @@
     tools:context="com.taberu.sensorsmeter.MainActivity">
 
     <Switch
-        android:text="Ativar coleta?"
+        android:id="@+id/SwitchColeta"
+        android:text="@string/ativar_coleta"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:id="@+id/switch1" />
+        android:onClick="collectOnClick" />
 
     <Button
         android:id="@+id/BtnSend"
         android:text="@string/share_btn"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:onClick="onClickBtn" />
+        android:onClick="shareFileOnClick"
+        android:enabled="false"
+        style="@android:style/Widget.Button"  />
 
     <Button
         android:id="@+id/BtnDelete"
         android:text="@string/delete_files"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:onClick="onClickBtn" />
+        android:onClick="deleteFileOnClick"
+        style="@android:style/Widget.Button" />
 </LinearLayout>
