@@ -3,4 +3,7 @@
     <string name="delete_files">Deletar Arquivos</string>
     <string name="share_btn">Enviar</string>
     <string name="ativar_coleta">Ativar coleta?</string>
+    <string name="strSummaryCollect">Habilita coleta de informações de sensores</string>
+    <string name="strCollect">Coleta</string>
+    <string name="strSettingsMenu">Settings</string>
 </resources>
