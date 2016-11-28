@@ -1,60 +1,46 @@
 package com.taberu.sensorsmeter;
 
+import android.content.ActivityNotFoundException;
 import android.content.Context;
+import android.content.Intent;
+import android.net.Uri;
+import android.os.Environment;
+import android.widget.Toast;
 
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.FilenameFilter;
+import java.io.IOException;
+import java.util.ArrayList;
 
-//import java.io.FileOutputStream;
+import static android.support.v4.content.FileProvider.getUriForFile;
+
 
 /**
  * Created by Taberu on 11/11/2016.
  */
 
 public class FileServices {
+    final static String sFileName = "driver_data.csv";
+
 
     boolean appendFile(Context context, String sBody) {
-//        String sFilePath = "filescsv";
-        String sFileName = "driver_data.csv";
-
-//        String filename = "myfile";
-//        String string = "Hello world!";
-        FileOutputStream outputStream;
+        File backupDB = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), sFileName); // for example "my_data_backup.db"
+        FileOutputStream fos;
 
         try {
-            outputStream = context.openFileOutput(sFileName, Context.MODE_APPEND);
-            outputStream.write(sBody.getBytes());
-            outputStream.close();
-        } catch (Exception e) {
+            fos = new FileOutputStream(backupDB, true);
+            fos.write(sBody.getBytes());
+            fos.close();
+        } catch (IOException e) {
             e.printStackTrace();
         }
-
-//        File myDir = new File(context.getFilesDir().toString() + "/" + sFilePath);
-////        myDir.mkdir(); //create folders where write files
-//        if(!myDir.exists()) {
-//            if (myDir.mkdir()) {
-//                Log.e("<<GUILHERME>>", "TRUE");
-//            } else {
-//                Log.e("<<GUILHERME>>", "FALSE");
-//            }
-//        }
-
-//        File myFile = new File(myDir, sFileName);
-//
-//        try {
-//            FileOutputStream outputStream = new FileOutputStream(myFile, context.MODE_PRIVATE);
-//            outputStream.write(sBody.getBytes());
-//            outputStream.close();
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//        }
 
         return true;
     }
 
     boolean clearFiles(Context context) {
-        File dirFiles = context.getFilesDir();
+        File dirFiles = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
 
         String[] listFiles = dirFiles.list(new FilenameFilter() {
             @Override
@@ -69,5 +55,39 @@ public class FileServices {
         }
 
         return true;
+    }
+
+    void shareFiles(Context context) {
+        Intent shareIntent = new Intent(Intent.ACTION_SEND_MULTIPLE);
+        ArrayList<Uri> uris = new ArrayList<>();
+
+        File shareFile = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), sFileName);
+        Uri contentUri = getUriForFile(context, "com.taberu.sensorsmeter.fileprovider", shareFile);
+
+        uris.add(contentUri);
+
+        shareIntent.setType("text/plain");
+        shareIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+        shareIntent.putParcelableArrayListExtra(Intent.EXTRA_STREAM, uris);
+        shareIntent.putExtra(android.content.Intent.EXTRA_SUBJECT, "CSV driver data");
+        shareIntent.putExtra(android.content.Intent.EXTRA_EMAIL,
+                new String[]{"email-address you want to send the file to"});
+
+        try {
+            context.startActivity(Intent.createChooser(shareIntent, "Email:")
+                    .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
+        } catch (ActivityNotFoundException e) {
+            Toast.makeText(context,
+                    "Sorry no email Application was found",
+                    Toast.LENGTH_SHORT).show();
+        }
+
+//
+//        String file = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES) + “/YOUR_FOLDER/myFile.jpg”;
+//        Intent intent = new Intent(Intent.ACTION_SENDTO);
+//        Uri fileUri = FileProvider.getUriForFile(context, {authority_name}, new File(file));
+//        intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+//        intent.putExtra(Intent.EXTRA_STREAM, fileUri);
+//        startActivity(intent);
     }
 }

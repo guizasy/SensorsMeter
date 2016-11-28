@@ -20,15 +20,14 @@ import android.widget.Toast;
 
 import java.text.SimpleDateFormat;
 
-
 // https://developer.android.com/training/location/retrieve-current.html
 // https://github.com/googlesamples/android-RuntimePermissions/blob/master/Application/src/main/java/com/example/android/system/runtimepermissions/MainActivity.java
 
 public class SensorsService extends Service implements SensorEventListener {
     private final static float ALPHA = 0.1f;
     private float[] output = new float[3];
-    private SensorManager mSensorManager;
-    private Sensor mSensorAccelerometer;
+    private SensorManager mSensorManager = null;
+    private Sensor mSensorAccelerometer = null;
     private TriggerEventListener mTriggerEventListener;
     SimpleDateFormat sdf = new SimpleDateFormat("yyyMMddhhmm");
     LocationManager mLocationManager;
@@ -41,19 +40,7 @@ public class SensorsService extends Service implements SensorEventListener {
 
     @Override
     public void onCreate() {
-//        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED || ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-////            ActivityCompat.requestPermissions(this,
-////                    new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
-////                    MY_PERMISSIONS_REQUEST_READ_CONTACTS);
-//
-//            // TODO: Consider calling
-//            //    ActivityCompat#requestPermissions
-//            // here to request the missing permissions, and then overriding
-//            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-//            //                                          int[] grantResults)
-//            // to handle the case where the user grants the permission. See the documentation
-//            // for ActivityCompat#requestPermissions for more details.
             return;
         }
 
@@ -67,7 +54,6 @@ public class SensorsService extends Service implements SensorEventListener {
         output[2] = 0.0f;
 
         mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
-//        mSensorAccelerometer = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
         mSensorAccelerometer = mSensorManager.getDefaultSensor(Sensor.TYPE_LINEAR_ACCELERATION);
         mSensorManager.registerListener(this, mSensorAccelerometer, SensorManager.SENSOR_DELAY_NORMAL);
         Toast.makeText(this, "Service start", Toast.LENGTH_SHORT).show();
@@ -75,7 +61,9 @@ public class SensorsService extends Service implements SensorEventListener {
 
     @Override
     public void onDestroy() {
-        mSensorManager.unregisterListener(this);
+        if (mSensorManager != null && mSensorAccelerometer != null)
+            mSensorManager.unregisterListener(this);
+
         Toast.makeText(this, "Service stopped", Toast.LENGTH_SHORT).show();
     }
 
@@ -88,7 +76,7 @@ public class SensorsService extends Service implements SensorEventListener {
         double longitude = location.getLongitude();
         double latitude = location.getLatitude();
 
-        String strRadio = timestamp + "," + Double.toString(input) + "," + Double.toString(longitude) + "," + Double.toString(latitude);
+        String strRadio = timestamp + "," + Double.toString(input) + "," + Double.toString(longitude) + "," + Double.toString(latitude) + "\n";
 
         FileServices fs = new FileServices();
         fs.appendFile(getApplicationContext(), strRadio);
@@ -97,7 +85,6 @@ public class SensorsService extends Service implements SensorEventListener {
     @Override
     public void onSensorChanged(SensorEvent sensorEvent) {
         if (sensorEvent.sensor.getType() != Sensor.TYPE_LINEAR_ACCELERATION)
-//        if (sensorEvent.sensor.getType() != Sensor.TYPE_ACCELEROMETER)
             return;
 
         /*

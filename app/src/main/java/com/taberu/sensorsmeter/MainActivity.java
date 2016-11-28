@@ -2,12 +2,10 @@ package com.taberu.sensorsmeter;
 
 import android.Manifest;
 import android.app.ActivityManager;
-import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
-import android.net.Uri;
 import android.os.Bundle;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
@@ -20,11 +18,6 @@ import android.widget.Button;
 import android.widget.CompoundButton;
 import android.widget.Switch;
 import android.widget.Toast;
-
-import java.io.File;
-import java.util.ArrayList;
-
-import static android.support.v4.content.FileProvider.getUriForFile;
 
 /*
     Settings:
@@ -59,7 +52,8 @@ public class MainActivity extends AppCompatActivity {
     Switch collectSwitch;
 
     private static final int REQUEST_ACCESS_FINE_LOCATION = 0;
-    private static final int REQUEST_ACCESS_COARSE_LOCATION = 1;
+//    private static final int REQUEST_ACCESS_COARSE_LOCATION = 1;
+    private static final int REQUEST_WRITE_EXTERNAL_STORAGE = 1;
     private View mLayout;
 
     private boolean isServiceRunning() {
@@ -94,6 +88,10 @@ public class MainActivity extends AppCompatActivity {
             requestPermissionGPS();
         }
 
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+            requestPermissionExternalStorage();
+        }
+
         collectSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
 
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
@@ -119,6 +117,10 @@ public class MainActivity extends AppCompatActivity {
             }
 
         });
+    }
+
+    private void requestPermissionExternalStorage() {
+        ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, REQUEST_WRITE_EXTERNAL_STORAGE);
     }
 
     private void requestPermissionGPS() {
@@ -204,30 +206,9 @@ public class MainActivity extends AppCompatActivity {
 
     public void shareFileOnClick(View view) {
         Context context = view.getContext();
-        Intent shareIntent = new Intent(android.content.Intent.ACTION_SEND_MULTIPLE);
-        ArrayList<Uri> uris = new ArrayList<>();
-//        File csvPath = new File(context.getFilesDir(), "filescsv");
-//        File csvPath = new File(context.getFilesDir().toString());
-//        File shareFile = new File(csvPath, "driver_data.csv");
-        File shareFile = new File(context.getFilesDir(), "driver_data.csv");
-        Uri contentUri = getUriForFile(context, "com.taberu.sensorsmeter.fileprovider", shareFile);
 
-        uris.add(contentUri);
-
-        shareIntent.setType("text/plain");
-        shareIntent.putParcelableArrayListExtra(Intent.EXTRA_STREAM, uris);
-        shareIntent.putExtra(android.content.Intent.EXTRA_SUBJECT, "CSV driver data");
-        shareIntent.putExtra(android.content.Intent.EXTRA_EMAIL,
-                new String[]{"email-address you want to send the file to"});
-
-        try {
-            context.startActivity(Intent.createChooser(shareIntent, "Email:")
-                    .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
-        } catch (ActivityNotFoundException e) {
-            Toast.makeText(context,
-                    "Sorry no email Application was found",
-                    Toast.LENGTH_SHORT).show();
-        }
+        FileServices fs = new FileServices();
+        fs.shareFiles(context);
     }
 
     public void deleteFileOnClick(View view) {
