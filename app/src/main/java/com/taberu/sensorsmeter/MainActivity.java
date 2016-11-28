@@ -52,7 +52,6 @@ public class MainActivity extends AppCompatActivity {
     Switch collectSwitch;
 
     private static final int REQUEST_ACCESS_FINE_LOCATION = 0;
-//    private static final int REQUEST_ACCESS_COARSE_LOCATION = 1;
     private static final int REQUEST_WRITE_EXTERNAL_STORAGE = 1;
     private View mLayout;
 
@@ -83,6 +82,7 @@ public class MainActivity extends AppCompatActivity {
 
         sendButton = (Button) findViewById(R.id.BtnSend);
         collectSwitch = (Switch) findViewById(R.id.SwitchColeta);
+        mLayout = findViewById(R.id.content_main);
 
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             requestPermissionGPS();
@@ -105,14 +105,14 @@ public class MainActivity extends AppCompatActivity {
                 sendButton.setEnabled(collectSwitch.isChecked());
                 if (collectSwitch.isChecked()) {
                     startSensorsService();
-                    Toast.makeText(getApplicationContext(),
-                            "Send is enabled",
-                            Toast.LENGTH_SHORT).show();
+//                    Toast.makeText(getApplicationContext(),
+//                            "Send is enabled",
+//                            Toast.LENGTH_SHORT).show();
                 } else {
                     stopSensorsService();
-                    Toast.makeText(getApplicationContext(),
-                            "Send is disabled",
-                            Toast.LENGTH_SHORT).show();
+//                    Toast.makeText(getApplicationContext(),
+//                            "Send is disabled",
+//                            Toast.LENGTH_SHORT).show();
                 }
             }
 
@@ -163,7 +163,6 @@ public class MainActivity extends AppCompatActivity {
                     "Service is not running",
                     Toast.LENGTH_SHORT).show();
         }
-
     }
 
     @Override
@@ -218,7 +217,7 @@ public class MainActivity extends AppCompatActivity {
         fs.clearFiles(context);
 
         Toast.makeText(context,
-                "Deleting Internal Files",
+                "Deleting CSV Files",
                 Toast.LENGTH_SHORT).show();
     }
 }

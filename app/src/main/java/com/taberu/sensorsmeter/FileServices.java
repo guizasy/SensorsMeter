@@ -20,6 +20,8 @@ import static android.support.v4.content.FileProvider.getUriForFile;
  * Created by Taberu on 11/11/2016.
  */
 
+// https://medium.com/@benexus/dealing-with-permissions-when-sharing-files-android-m-cee9ecc287bf#.erm1fy377
+
 public class FileServices {
     final static String sFileName = "driver_data.csv";
 
@@ -41,6 +43,7 @@ public class FileServices {
 
     boolean clearFiles(Context context) {
         File dirFiles = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
+        File fileRemove;
 
         String[] listFiles = dirFiles.list(new FilenameFilter() {
             @Override
@@ -50,8 +53,8 @@ public class FileServices {
         });
 
         for (String strFile : listFiles) {
-            // strFile is the file name
-            context.deleteFile(strFile);
+            fileRemove = new File(dirFiles, strFile);
+            fileRemove.delete();
         }
 
         return true;
@@ -81,13 +84,5 @@ public class FileServices {
                     "Sorry no email Application was found",
                     Toast.LENGTH_SHORT).show();
         }
-
-//
-//        String file = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES) + “/YOUR_FOLDER/myFile.jpg”;
-//        Intent intent = new Intent(Intent.ACTION_SENDTO);
-//        Uri fileUri = FileProvider.getUriForFile(context, {authority_name}, new File(file));
-//        intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-//        intent.putExtra(Intent.EXTRA_STREAM, fileUri);
-//        startActivity(intent);
     }
 }

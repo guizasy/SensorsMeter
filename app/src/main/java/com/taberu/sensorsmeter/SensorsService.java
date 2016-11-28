@@ -16,7 +16,6 @@ import android.location.LocationManager;
 import android.os.IBinder;
 import android.support.v4.app.ActivityCompat;
 import android.util.Log;
-import android.widget.Toast;
 
 import java.text.SimpleDateFormat;
 
@@ -56,7 +55,7 @@ public class SensorsService extends Service implements SensorEventListener {
         mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
         mSensorAccelerometer = mSensorManager.getDefaultSensor(Sensor.TYPE_LINEAR_ACCELERATION);
         mSensorManager.registerListener(this, mSensorAccelerometer, SensorManager.SENSOR_DELAY_NORMAL);
-        Toast.makeText(this, "Service start", Toast.LENGTH_SHORT).show();
+//        Toast.makeText(this, "Service start", Toast.LENGTH_SHORT).show();
     }
 
     @Override
@@ -64,7 +63,7 @@ public class SensorsService extends Service implements SensorEventListener {
         if (mSensorManager != null && mSensorAccelerometer != null)
             mSensorManager.unregisterListener(this);
 
-        Toast.makeText(this, "Service stopped", Toast.LENGTH_SHORT).show();
+//        Toast.makeText(this, "Service stopped", Toast.LENGTH_SHORT).show();
     }
 
     private void saveAccelerometerData(String timestamp, double input) {
