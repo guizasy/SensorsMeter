@@ -1,21 +1,24 @@
 package com.taberu.sensorsmeter;
 
+import android.Manifest;
+import android.app.ActivityManager;
 import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.hardware.Sensor;
-import android.hardware.SensorEvent;
-import android.hardware.SensorEventListener;
+import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Bundle;
+import android.support.design.widget.Snackbar;
+import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
-import android.view.LayoutInflater;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
-import android.widget.LinearLayout;
+import android.widget.CompoundButton;
+import android.widget.Switch;
 import android.widget.Toast;
 
 import java.io.File;
@@ -49,24 +52,116 @@ import static android.support.v4.content.FileProvider.getUriForFile;
 
  */
 
-
-public class MainActivity extends AppCompatActivity implements SensorEventListener {
-//    public static final String KEY_PREF_ENABLE_COLLECT = "enable_collect";
-//    public static final String PREFS_NAME = "com.taberu.sensorsmeter.SettingsActivity";
-//    SharedPreferences settings = getSharedPreferences(PREFS_NAME, 0);
+public class MainActivity extends AppCompatActivity {
+    public static final String KEY_PREF_ENABLE_COLLECT = "enable_collect";
+    SharedPreferences sharedPref;
     Button sendButton;
+    Switch collectSwitch;
+
+    private static final int REQUEST_ACCESS_FINE_LOCATION = 0;
+    private static final int REQUEST_ACCESS_COARSE_LOCATION = 1;
+    private View mLayout;
+
+    private boolean isServiceRunning() {
+        ActivityManager manager = (ActivityManager) getSystemService(ACTIVITY_SERVICE);
+        for (ActivityManager.RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE)) {
+            if ("com.taberu.sensorsmeter.SensorsService".equals(service.service.getClassName())) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public void startSensorsService() {
+        Intent intent = new Intent(this, SensorsService.class);
+        startService(intent);
+    }
+
+    public void stopSensorsService() {
+        Intent intent = new Intent(this, SensorsService.class);
+        stopService(intent);
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
         sendButton = (Button) findViewById(R.id.BtnSend);
+        collectSwitch = (Switch) findViewById(R.id.SwitchColeta);
+
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            requestPermissionGPS();
+        }
+
+        collectSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                SharedPreferences mSharedPref = getApplicationContext().getSharedPreferences(getString(R.string.prefs_file), Context.MODE_PRIVATE);
+                SharedPreferences.Editor editor = mSharedPref.edit();
+
+                //commit prefs on change
+                editor.putBoolean(KEY_PREF_ENABLE_COLLECT, isChecked);
+                editor.apply();
+
+                sendButton.setEnabled(collectSwitch.isChecked());
+                if (collectSwitch.isChecked()) {
+                    startSensorsService();
+                    Toast.makeText(getApplicationContext(),
+                            "Send is enabled",
+                            Toast.LENGTH_SHORT).show();
+                } else {
+                    stopSensorsService();
+                    Toast.makeText(getApplicationContext(),
+                            "Send is disabled",
+                            Toast.LENGTH_SHORT).show();
+                }
+            }
+
+        });
+    }
+
+    private void requestPermissionGPS() {
+        if (ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.ACCESS_FINE_LOCATION)) {
+            // Provide an additional rationale to the user if the permission was not granted
+            // and the user would benefit from additional context for the use of the permission.
+            // For example if the user has previously denied the permission.
+            Log.i("<<GUILHERME>>", "Displaying GPS permission rationale to provide additional context.");
+            Snackbar.make(mLayout, R.string.permission_fine_rationale,
+                    Snackbar.LENGTH_INDEFINITE)
+                    .setAction("Ok", new View.OnClickListener() {
+                        @Override
+                        public void onClick(View view) {
+                            ActivityCompat.requestPermissions(MainActivity.this,
+                                    new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
+                                    REQUEST_ACCESS_FINE_LOCATION);
+                        }
+                    })
+                    .show();
+        } else {
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
+                    REQUEST_ACCESS_FINE_LOCATION);
+        }
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-//        sendButton.setEnabled(settings.getBoolean(KEY_PREF_ENABLE_COLLECT, false));
+
+        // Restore preferences
+        sharedPref = getApplicationContext().getSharedPreferences(getString(R.string.prefs_file), Context.MODE_PRIVATE);
+        collectSwitch.setChecked(sharedPref.getBoolean(KEY_PREF_ENABLE_COLLECT, false));
+
+        if (isServiceRunning()) {
+            Toast.makeText(getApplicationContext(),
+                    "Service is running",
+                    Toast.LENGTH_SHORT).show();
+        } else {
+            Toast.makeText(getApplicationContext(),
+                    "Service is not running",
+                    Toast.LENGTH_SHORT).show();
+        }
+
     }
 
     @Override
@@ -88,8 +183,6 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
 
-        //noinspection SimplifiableIfStatement
-
         if (id == R.id.menu_settings) {
             Intent myIntent = new Intent(MainActivity.this, SettingsActivity.class);
             MainActivity.this.startActivity(myIntent);
@@ -98,7 +191,6 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
         return super.onOptionsItemSelected(item);
     }
-
 
     @Override
     public void onSaveInstanceState(Bundle save) {
@@ -110,22 +202,14 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         super.onRestoreInstanceState(savedInstanceState);
     }
 
-    @Override
-    public void onSensorChanged(SensorEvent sensorEvent) {
-
-    }
-
-    @Override
-    public void onAccuracyChanged(Sensor sensor, int i) {
-
-    }
-
     public void shareFileOnClick(View view) {
         Context context = view.getContext();
         Intent shareIntent = new Intent(android.content.Intent.ACTION_SEND_MULTIPLE);
         ArrayList<Uri> uris = new ArrayList<>();
-        File csvPath = new File(context.getFilesDir(), "csv");
-        File shareFile = new File(csvPath, "driver_data.csv");
+//        File csvPath = new File(context.getFilesDir(), "filescsv");
+//        File csvPath = new File(context.getFilesDir().toString());
+//        File shareFile = new File(csvPath, "driver_data.csv");
+        File shareFile = new File(context.getFilesDir(), "driver_data.csv");
         Uri contentUri = getUriForFile(context, "com.taberu.sensorsmeter.fileprovider", shareFile);
 
         uris.add(contentUri);
@@ -146,22 +230,14 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         }
     }
 
-//    public void collectOnClick(View view) {
-//        Context context = view.getContext();
-//
-//        sendButton.setEnabled(collectSwitch.isChecked());
-//        if (collectSwitch.isChecked()) {
-//            Toast.makeText(context,
-//                    "Send is enabled",
-//                    Toast.LENGTH_SHORT).show();
-//        } else {
-//            Toast.makeText(context,
-//                    "Send is disabled",
-//                    Toast.LENGTH_SHORT).show();
-//        }
-//    }
-
     public void deleteFileOnClick(View view) {
+        Context context = view.getContext();
 
+        FileServices fs = new FileServices();
+        fs.clearFiles(context);
+
+        Toast.makeText(context,
+                "Deleting Internal Files",
+                Toast.LENGTH_SHORT).show();
     }
 }

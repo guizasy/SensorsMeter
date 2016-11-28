@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/activity_main"
+    android:id="@+id/content_main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:paddingBottom="@dimen/activity_vertical_margin"
@@ -11,14 +12,15 @@
     android:background="@color/colorBackground"
     android:orientation="vertical"
     android:gravity="center_vertical|center_horizontal"
-    tools:context="com.taberu.sensorsmeter.MainActivity">
+    tools:context="com.taberu.sensorsmeter.MainActivity"
+    app:layout_behavior="@string/appbar_scrolling_view_behavior"
+    tools:showIn="@layout/activity_main" >
 
-    <!--<Switch-->
-    <!--android:id="@+id/SwitchColeta"-->
-    <!--android:text="@string/ativar_coleta"-->
-    <!--android:layout_width="match_parent"-->
-    <!--android:layout_height="wrap_content"-->
-    <!--android:onClick="collectOnClick" />-->
+    <Switch
+        android:id="@+id/SwitchColeta"
+        android:text="@string/ativar_coleta"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
 
     <Button
         android:id="@+id/BtnSend"
@@ -27,7 +29,7 @@
         android:layout_height="wrap_content"
         android:onClick="shareFileOnClick"
         android:enabled="false"
-        style="@android:style/Widget.Button"  />
+        style="@android:style/Widget.Button" />
 
     <Button
         android:id="@+id/BtnDelete"

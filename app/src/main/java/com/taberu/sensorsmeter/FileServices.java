@@ -5,7 +5,8 @@ import android.content.Context;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.FilenameFilter;
-import java.io.IOException;
+
+//import java.io.FileOutputStream;
 
 /**
  * Created by Taberu on 11/11/2016.
@@ -13,24 +14,46 @@ import java.io.IOException;
 
 public class FileServices {
 
-    public boolean appendFile(Context context, String sFileName, String sBody) {
-        FileOutputStream outputStream;
-        File myFile;
+    boolean appendFile(Context context, String sBody) {
+//        String sFilePath = "filescsv";
+        String sFileName = "driver_data.csv";
 
-        myFile = new File(context.getFilesDir(), sFileName);
+//        String filename = "myfile";
+//        String string = "Hello world!";
+        FileOutputStream outputStream;
 
         try {
-            outputStream = new FileOutputStream(myFile, true);
+            outputStream = context.openFileOutput(sFileName, Context.MODE_APPEND);
             outputStream.write(sBody.getBytes());
             outputStream.close();
         } catch (Exception e) {
             e.printStackTrace();
         }
 
+//        File myDir = new File(context.getFilesDir().toString() + "/" + sFilePath);
+////        myDir.mkdir(); //create folders where write files
+//        if(!myDir.exists()) {
+//            if (myDir.mkdir()) {
+//                Log.e("<<GUILHERME>>", "TRUE");
+//            } else {
+//                Log.e("<<GUILHERME>>", "FALSE");
+//            }
+//        }
+
+//        File myFile = new File(myDir, sFileName);
+//
+//        try {
+//            FileOutputStream outputStream = new FileOutputStream(myFile, context.MODE_PRIVATE);
+//            outputStream.write(sBody.getBytes());
+//            outputStream.close();
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//        }
+
         return true;
     }
 
-    public boolean clearFiles(Context context) {
+    boolean clearFiles(Context context) {
         File dirFiles = context.getFilesDir();
 
         String[] listFiles = dirFiles.list(new FilenameFilter() {
