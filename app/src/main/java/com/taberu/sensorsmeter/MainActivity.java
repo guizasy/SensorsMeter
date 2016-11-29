@@ -7,17 +7,19 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
-import android.support.design.widget.Snackbar;
+import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
-import android.view.Menu;
-import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.CompoundButton;
 import android.widget.Switch;
 import android.widget.Toast;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /*
     Settings:
@@ -51,8 +53,7 @@ public class MainActivity extends AppCompatActivity {
     Button sendButton;
     Switch collectSwitch;
 
-    private static final int REQUEST_ACCESS_FINE_LOCATION = 0;
-    private static final int REQUEST_WRITE_EXTERNAL_STORAGE = 1;
+    final private int REQUEST_CODE_ASK_MULTIPLE_PERMISSIONS = 27;
     private View mLayout;
 
     private boolean isServiceRunning() {
@@ -84,13 +85,7 @@ public class MainActivity extends AppCompatActivity {
         collectSwitch = (Switch) findViewById(R.id.SwitchColeta);
         mLayout = findViewById(R.id.content_main);
 
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            requestPermissionGPS();
-        }
-
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
-            requestPermissionExternalStorage();
-        }
+        requestAppPermission();
 
         collectSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
 
@@ -105,44 +100,61 @@ public class MainActivity extends AppCompatActivity {
                 sendButton.setEnabled(collectSwitch.isChecked());
                 if (collectSwitch.isChecked()) {
                     startSensorsService();
-//                    Toast.makeText(getApplicationContext(),
-//                            "Send is enabled",
-//                            Toast.LENGTH_SHORT).show();
                 } else {
                     stopSensorsService();
-//                    Toast.makeText(getApplicationContext(),
-//                            "Send is disabled",
-//                            Toast.LENGTH_SHORT).show();
                 }
             }
 
         });
     }
 
-    private void requestPermissionExternalStorage() {
-        ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, REQUEST_WRITE_EXTERNAL_STORAGE);
+    private void requestAppPermission() {
+        final List<String> permissionsList = new ArrayList<String>();
+
+        addPermission(permissionsList, Manifest.permission.ACCESS_FINE_LOCATION);
+        addPermission(permissionsList, Manifest.permission.WRITE_EXTERNAL_STORAGE);
+
+        if (permissionsList.size() > 0) {
+            ActivityCompat.requestPermissions(this, permissionsList.toArray(new String[permissionsList.size()]),
+                    REQUEST_CODE_ASK_MULTIPLE_PERMISSIONS);
+        }
     }
 
-    private void requestPermissionGPS() {
-        if (ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.ACCESS_FINE_LOCATION)) {
-            // Provide an additional rationale to the user if the permission was not granted
-            // and the user would benefit from additional context for the use of the permission.
-            // For example if the user has previously denied the permission.
-            Log.i("<<GUILHERME>>", "Displaying GPS permission rationale to provide additional context.");
-            Snackbar.make(mLayout, R.string.permission_fine_rationale,
-                    Snackbar.LENGTH_INDEFINITE)
-                    .setAction("Ok", new View.OnClickListener() {
-                        @Override
-                        public void onClick(View view) {
-                            ActivityCompat.requestPermissions(MainActivity.this,
-                                    new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
-                                    REQUEST_ACCESS_FINE_LOCATION);
-                        }
-                    })
-                    .show();
-        } else {
-            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
-                    REQUEST_ACCESS_FINE_LOCATION);
+    private boolean addPermission(List<String> permissionsList, String permission) {
+
+        if (ActivityCompat.checkSelfPermission(getApplicationContext(), permission) != PackageManager.PERMISSION_GRANTED) {
+            permissionsList.add(permission);
+        }
+
+        return true;
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        switch (requestCode) {
+            case REQUEST_CODE_ASK_MULTIPLE_PERMISSIONS:
+            {
+                Map<String, Integer> perms = new HashMap<String, Integer>();
+
+                // Initial
+                perms.put(Manifest.permission.ACCESS_FINE_LOCATION, PackageManager.PERMISSION_GRANTED);
+                perms.put(Manifest.permission.WRITE_EXTERNAL_STORAGE, PackageManager.PERMISSION_GRANTED);
+
+                // Fill with results
+                for (int i = 0; i < permissions.length; i++)
+                    perms.put(permissions[i], grantResults[i]);
+
+                // Check for ACCESS_FINE_LOCATION
+                if (perms.get(Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
+                        || perms.get(Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+                    // Permission Denied
+                    Toast.makeText(MainActivity.this, "Some Permission is Denied", Toast.LENGTH_SHORT)
+                            .show();
+                }
+                break;
+            }
+            default:
+                super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         }
     }
 
@@ -171,29 +183,6 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.menu_main, menu);
-        return true;
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
-
-        if (id == R.id.menu_settings) {
-            Intent myIntent = new Intent(MainActivity.this, SettingsActivity.class);
-            MainActivity.this.startActivity(myIntent);
-            return true;
-        }
-
-        return super.onOptionsItemSelected(item);
-    }
-
-    @Override
     public void onSaveInstanceState(Bundle save) {
         super.onSaveInstanceState(save);
     }
@@ -214,7 +203,7 @@ public class MainActivity extends AppCompatActivity {
         Context context = view.getContext();
 
         FileServices fs = new FileServices();
-        fs.clearFiles(context);
+        fs.clearFiles();
 
         Toast.makeText(context,
                 "Deleting CSV Files",

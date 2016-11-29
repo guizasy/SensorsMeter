@@ -21,13 +21,14 @@ import static android.support.v4.content.FileProvider.getUriForFile;
  */
 
 // https://medium.com/@benexus/dealing-with-permissions-when-sharing-files-android-m-cee9ecc287bf#.erm1fy377
+// https://inthecheesefactory.com/blog/how-to-share-access-to-file-with-fileprovider-on-android-nougat/en
 
 public class FileServices {
     final static String sFileName = "driver_data.csv";
 
 
-    boolean appendFile(Context context, String sBody) {
-        File backupDB = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), sFileName); // for example "my_data_backup.db"
+    boolean appendFile(String sBody) {
+        File backupDB = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), sFileName);
         FileOutputStream fos;
 
         try {
@@ -41,7 +42,7 @@ public class FileServices {
         return true;
     }
 
-    boolean clearFiles(Context context) {
+    boolean clearFiles() {
         File dirFiles = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
         File fileRemove;
 
@@ -52,9 +53,11 @@ public class FileServices {
             }
         });
 
-        for (String strFile : listFiles) {
-            fileRemove = new File(dirFiles, strFile);
-            fileRemove.delete();
+        if (listFiles.length != 0) {
+            for (String strFile : listFiles) {
+                fileRemove = new File(dirFiles, strFile);
+                fileRemove.delete();
+            }
         }
 
         return true;
